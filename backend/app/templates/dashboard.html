@@ -1,0 +1,119 @@
+<!doctype html><html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Interactive Dashboard</title>
+<style>
+:root[data-theme=dark]{--bg:#070d1c;--card:#0d1630;--bd:#1b2748;--fg:#eef2ff;--mut:#8a97b8;--soft:#0a1228;--hov:rgba(120,150,255,.14);--sh:none}
+:root[data-theme=light]{--bg:#f4f6fb;--card:#fff;--bd:#e1e6f1;--fg:#121933;--mut:#5b6785;--soft:#f1f4fc;--hov:rgba(47,107,255,.09);--sh:0 6px 24px rgba(34,56,120,.08)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--fg)}.wrap{max-width:1180px;margin:0 auto;padding:22px}
+header{margin-bottom:14px}h1{margin:0;font-size:28px}.mut{color:var(--mut);font-size:13px}
+#ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}select,input,button{font:inherit;font-size:13px;padding:8px 11px;border-radius:9px;border:1px solid var(--bd);background:var(--card);color:var(--fg);color-scheme:inherit}button{cursor:pointer}button.p{background:#2f6bff;color:#fff;border:0}
+.kpis,.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:14px}.kpi{border-radius:14px;padding:16px;display:flex;gap:12px;align-items:center;color:#fff;box-shadow:var(--sh)}
+.k0{background:linear-gradient(135deg,#2563eb,#1e3a8a)}.k1{background:linear-gradient(135deg,#059669,#0b4f45)}.k2{background:linear-gradient(135deg,#7c3aed,#3b1d8a)}.k3{background:linear-gradient(135deg,#d97706,#7a4a0a)}.k4{background:linear-gradient(135deg,#db2777,#7a1a43)}
+.ico{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:21px;flex:none}.kpi b{display:block;font-size:22px;margin:2px 0}.kpi em{font-style:normal;font-size:12px;opacity:.92}.kpi span{font-size:13px;opacity:.9}
+.row{display:grid;gap:14px;margin-bottom:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}.r1{grid-template-columns:1.5fr 1.2fr 1fr}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;min-width:0;box-shadow:var(--sh)}.card h3{margin:0 0 10px;font-size:15px}.strip .card b{display:block;font-size:20px;margin-top:4px}.strip .card small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+svg{width:100%;height:auto;display:block}.gl{stroke:var(--bd)}.ax{fill:var(--mut);font-size:11px}.hv{fill:transparent}.hv:hover{fill:var(--hov)}circle[data-t]:hover{stroke-width:32}
+.lg{display:flex;gap:14px;justify-content:center;font-size:12px;color:var(--mut);margin-top:4px}i.d,.lg i,#tip i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.donut{display:flex;align-items:center;gap:10px}.donut svg{width:170px;flex:none}.leg{flex:1;display:flex;flex-direction:column;gap:9px;font-size:13px}.leg div{display:flex;align-items:center;gap:8px}.leg .r{margin-left:auto;color:var(--mut)}
+.bl div.b{display:grid;grid-template-columns:minmax(80px,1.1fr) 2fr 56px;gap:8px;align-items:center;font-size:13px;margin:9px 0}.bl .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar{height:9px;border-radius:5px;background:var(--soft)}.bar u{display:block;height:100%;border-radius:5px;background:#2f6bff}.bl .v{text-align:right}
+.ins{display:flex;flex-direction:column;gap:8px;max-height:330px;overflow:auto}.ins div{background:var(--soft);border:1px solid var(--bd);border-radius:10px;padding:8px 10px;font-size:12.5px}
+table{width:100%;border-collapse:collapse;font-size:13px}th{color:var(--mut);font-weight:400;text-align:left;padding:6px 4px}td{padding:8px 4px;border-top:1px solid var(--bd)}.tr{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rt{text-align:right}th.rt{text-align:right}
+#tip{position:fixed;display:none;pointer-events:none;z-index:9;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:8px 11px;font-size:12px;box-shadow:0 8px 28px rgba(0,0,0,.3);max-width:280px}
+details{margin-top:6px}summary{cursor:pointer;color:var(--mut)}details p{color:var(--mut);font-size:13px;line-height:1.55}footer{color:var(--mut);font-size:12px;text-align:center;margin:20px 0}
+@media(max-width:1000px){.r1{grid-template-columns:1fr}}@media print{#ctl{display:none}body{background:#fff}}
+</style></head><body><div class="wrap"><header><h1 id="title"></h1><div class="mut" id="sub"></div></header><div id="ctl"></div><div class="kpis" id="kpis"></div>
+<div class="row r1" id="r1"></div><div class="row" id="r2"></div><div class="strip" id="strip"></div>
+<div class="card"><h3>🔍 How this dashboard was built</h3><details><summary>Show the decisions AutoDash made</summary><div id="why"></div></details></div><footer id="foot"></footer></div><div id="tip"></div>
+<script>
+const D=/*__DATA__*/null;
+(function(){
+const C=D.cols,N=D.rows,T=D.time,PAL=['#2f6bff','#22c55e','#f59e0b','#ec4899','#8b5cf6','#94a3b8'],MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const S={theme:D.initial.theme||((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark'),ind:D.initial.ind!=null?D.initial.ind:/IN$/.test(navigator.language||''),sel:{},min:D.initial.min||'',max:D.initial.max||''};
+for(const k in (D.initial.sel||{})){if(C[k]&&C[k].u&&C[k].u.indexOf(D.initial.sel[k])>=0)S.sel[k]=D.initial.sel[k]}
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),ACR={tv:1,id:1,ip:1,sku:1,usd:1};
+const nice=s=>String(s||'').split('_').map(w=>ACR[w.toLowerCase()]?w.toUpperCase():w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+const unit=m=>S.ind?(m>=1e7?[1e7,' Cr']:m>=1e5?[1e5,' L']:m>=1e3?[1e3,'K']:[1,'']):(m>=1e9?[1e9,'B']:m>=1e6?[1e6,'M']:m>=1e3?[1e3,'K']:[1,'']);
+const nf=v=>v==null||!isFinite(v)?'–':v.toLocaleString(S.ind?'en-IN':'en-US',{maximumFractionDigits:2});
+const fv=(v,f)=>v==null||!isFinite(v)?'–':f==='percent'?(v*100).toFixed(1)+'%':nf(v);
+const sh=(v,f)=>{if(v==null||!isFinite(v))return'–';if(f==='percent')return(v*100).toFixed(1)+'%';const u=unit(Math.abs(v));return(v/u[0]).toFixed(u[0]===1?(Number.isInteger(v)?0:2):1)+u[1]};
+const ticker=(mx,f)=>{if(f==='percent')return v=>(v*100).toFixed(0)+'%';const u=unit(mx);return v=>(+(v/u[0]).toFixed(1))+u[1]};
+const day=s=>s?Math.floor(Date.parse(s)/864e5):null,iso=d=>new Date(d*864e5).toISOString().slice(0,10);
+const mf=m=>m.agg==='rate'?'percent':D.fmt[m.column],mk=m=>m.column+'_'+m.agg,ml=m=>m.agg==='rate'?nice(m.column)+' rate':m.agg==='count'?D.records:(m.agg==='mean'?'Average ':'')+nice(m.column);
+let TMIN=1e9,TMAX=-1e9;if(T){for(const d of C[T].i){if(d<0)continue;if(d<TMIN)TMIN=d;if(d>TMAX)TMAX=d}}
+const ymd=d=>{const t=new Date(d*864e5);return[t.getUTCFullYear(),t.getUTCMonth()]},KEY={D:d=>d,M:d=>{const a=ymd(d);return a[0]*12+a[1]},Q:d=>{const a=ymd(d);return a[0]*4+Math.floor(a[1]/3)},Y:d=>ymd(d)[0]};
+const LAB={D:k=>{const t=new Date(k*864e5);return t.getUTCDate()+' '+MN[t.getUTCMonth()]},M:k=>MN[k%12]+" '"+String(Math.floor(k/12)).slice(2),Q:k=>'Q'+(k%4+1)+' '+Math.floor(k/4),Y:k=>String(k)};
+function rows(){const out=[],tc=T&&C[T],lo=day(S.min),hi=day(S.max),fs=Object.keys(S.sel).filter(k=>S.sel[k]).map(k=>[C[k].i,C[k].u.indexOf(S.sel[k])]);
+ for(let i=0;i<N;i++){if(tc&&(lo!=null||hi!=null)){const d=tc.i[i];if(d<0||(lo!=null&&d<lo)||(hi!=null&&d>hi))continue}let ok=true;for(const f of fs)if(f[0][i]!==f[1]){ok=false;break}if(ok)out.push(i)}return out}
+function agg(m,R){const a=m.agg;if(a==='count')return R.length;const x=C[m.column];
+ if(a==='nunique'){const s=new Set();for(const i of R)s.add(x.t==='num'?x.v[i]:x.i[i]);s.delete(-1);s.delete(null);return s.size}
+ if(a==='rate'){const p=x.u.indexOf(String(m.positive));let c=0,n=0;for(const i of R){if(x.i[i]<0)continue;n++;if(x.i[i]===p)c++}return n?c/n:0}
+ let s=0,n=0;for(const i of R){const v=x.v[i];if(v!=null){s+=v;n++}}return a==='mean'?(n?s/n:null):s}
+function groups(dim,R,key){const m=new Map();for(const i of R){const k=key(i);if(k==null||k===-1)continue;let a=m.get(k);if(!a)m.set(k,a=[]);a.push(i)}return m}
+function byDim(q,R){const x=C[q.group_by[0]].i;return Array.from(groups(0,R,i=>x[i]).entries()).map(e=>({name:C[q.group_by[0]].u[e[0]],v:q.metrics.map(m=>agg(m,e[1]))})).sort((a,b)=>q.order==='asc'?a.v[0]-b.v[0]:b.v[0]-a.v[0]).slice(0,q.limit||50)}
+function byTime(q,R,gr){const tc=C[T].i;return Array.from(groups(0,R,i=>tc[i]<0?null:KEY[gr](tc[i])).entries()).sort((a,b)=>a[0]-b[0]).map(e=>({k:e[0],v:q.metrics.map(m=>agg(m,e[1]))}))}
+function chart(el,labels,SR,H){H=H||250;const W=640,hasR=SR.some(s=>s.ax==='r'),m={l:54,r:hasR?54:14,t:10,b:26},iw=W-m.l-m.r,ih=H-m.t-m.b,n=labels.length,E={};
+ ['l','r'].forEach(a=>{const v=[];SR.filter(s=>s.ax===a).forEach(s=>s.v.forEach(x=>{if(x!=null)v.push(x)}));if(v.length){const lo=Math.min(0,...v);let hi=Math.max(...v);if(hi<=lo)hi=lo+1;E[a]=[lo,hi]}});
+ if(!n||!Object.keys(E).length){el.innerHTML='<p class="mut">No data for the current filters.</p>';return}
+ const Y=(a,v)=>m.t+ih-(v-E[a][0])/(E[a][1]-E[a][0])*ih,X=i=>m.l+(i+.5)/n*iw,TK={};for(const a in E)TK[a]=ticker(Math.max(Math.abs(E[a][0]),Math.abs(E[a][1])),SR.find(s=>s.ax===a).fmt);
+ let g='';for(let t=0;t<=4;t++){const y=m.t+ih*t/4;g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" class="gl"/>`;for(const a in E){const v=E[a][1]-(E[a][1]-E[a][0])*t/4;g+=`<text x="${a==='l'?m.l-6:W-m.r+6}" y="${y+4}" class="ax" text-anchor="${a==='l'?'end':'start'}">${TK[a](v)}</text>`}}
+ const step=Math.ceil(n/8);for(let i=0;i<n;i+=step)g+=`<text x="${X(i)}" y="${H-8}" class="ax" text-anchor="middle">${esc(labels[i])}</text>`;
+ const bars=SR.filter(s=>s.type==='bar'),bw=iw/n*.62/Math.max(1,bars.length);
+ SR.forEach(s=>{if(s.type==='bar'){const bi=bars.indexOf(s);s.v.forEach((v,i)=>{if(v==null)return;const x=X(i)-bw*bars.length/2+bi*bw,y0=Y(s.ax,Math.max(0,E[s.ax][0])),y1=Y(s.ax,v);g+=`<rect x="${x}" y="${Math.min(y0,y1)}" width="${bw}" height="${Math.abs(y0-y1)}" rx="3" fill="${s.color}"/>`})}
+  else{let d='',st=false;s.v.forEach((v,i)=>{if(v==null)return;d+=(st?'L':'M')+X(i)+' '+Y(s.ax,v);st=true});
+   if(s.type==='area'&&st){const f=s.v.findIndex(v=>v!=null),l=s.v.length-1-s.v.slice().reverse().findIndex(v=>v!=null),b=Y(s.ax,Math.max(0,E[s.ax][0]));g+=`<path d="${d}L${X(l)} ${b}L${X(f)} ${b}Z" fill="${s.color}" fill-opacity=".18"/>`}
+   g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2"/>`;if(n<=40)s.v.forEach((v,i)=>{if(v!=null)g+=`<circle cx="${X(i)}" cy="${Y(s.ax,v)}" r="2.8" fill="${s.color}"/>`})}});
+ for(let i=0;i<n;i++){const tip=`<b>${esc(labels[i])}</b>`+SR.map(s=>`<div><i style="background:${s.color}"></i>${esc(s.name)}: <b>${fv(s.v[i],s.fmt)}</b></div>`).join('');g+=`<rect class="hv" x="${m.l+i/n*iw}" y="${m.t}" width="${iw/n}" height="${ih}" data-t="${esc(tip)}"/>`}
+ el.innerHTML=`<svg viewBox="0 0 ${W} ${H}">${g}</svg><div class="lg">${SR.map(s=>`<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('')}</div>`}
+function donut(el,items,f,label){const tot=items.reduce((a,b)=>a+b.v,0);if(!tot){el.innerHTML='<p class="mut">No data for the current filters.</p>';return}const Rr=60,Cc=2*Math.PI*Rr;let off=0,a='';
+ items.forEach((it,i)=>{const fr=it.v/tot,len=fr*Cc;a+=`<circle r="${Rr}" cx="80" cy="80" fill="none" stroke="${PAL[i%6]}" stroke-width="26" stroke-dasharray="${len} ${Cc-len}" stroke-dashoffset="${-off}" transform="rotate(-90 80 80)" data-t="${esc(esc(it.name)+': '+fv(it.v,f)+' ('+(fr*100).toFixed(1)+'%)')}"/>`;off+=len});
+ el.innerHTML=`<div class="donut"><svg viewBox="0 0 160 160">${a}<text x="80" y="80" text-anchor="middle" style="fill:var(--fg);font-size:15px;font-weight:700">${sh(tot,f)}</text><text x="80" y="96" text-anchor="middle" class="ax">${esc(label||'Total')}</text></svg><div class="leg">${items.map((it,i)=>`<div><i class="d" style="background:${PAL[i%6]}"></i>${esc(it.name)}<span class="r">${(it.v/tot*100).toFixed(1)}%</span></div>`).join('')}</div></div>`}
+function barlist(el,items,f,share){if(!items.length){el.innerHTML='<p class="mut">No data for the current filters.</p>';return}const mx=Math.max(...items.map(x=>x.v),1e-9),tot=items.reduce((a,b)=>a+b.v,0);
+ el.innerHTML='<div class="bl">'+items.map((x,i)=>`<div class="b" data-t="${esc(esc(x.name)+': '+fv(x.v,f)+(share&&tot?' ('+(x.v/tot*100).toFixed(1)+'%)':''))}"><span class="nm" title="${esc(x.name)}">${esc(x.name)}</span><div class="bar"><u style="width:${Math.max(2,x.v/mx*100)}%;background:${PAL[i%6]}"></u></div><span class="v">${share&&f!=='percent'?(tot?(x.v/tot*100).toFixed(1)+'%':''):fv(x.v,f)}</span></div>`).join('')+'</div>'}
+function segs(R){const tg=D.target;if(!tg)return null;const tc=C[tg.column],p=tc.u.indexOf(String(tg.positive)),n=R.length,minsup=Math.max(30,Math.floor(.01*n));let pos=0,tot=0;for(const i of R){if(tc.i[i]<0)continue;tot++;if(tc.i[i]===p)pos++}const overall=tot?pos/tot:0,all=[];
+ D.segdims.forEach(d=>{const x=C[d],cnt={},ps={};for(const i of R){const k=x.i[i];if(k<0||tc.i[i]<0)continue;cnt[k]=(cnt[k]||0)+1;if(tc.i[i]===p)ps[k]=(ps[k]||0)+1}
+  for(const k in cnt){if(cnt[k]>=minsup){let v=x.u[k];if(D.flagdims.indexOf(d)>=0&&(v==='1'||v==='0'))v=v==='1'?'Yes':'No';all.push({label:nice(d)+': '+v,dim:d,n:cnt[k],rate:(ps[k]||0)/cnt[k],lift:overall?((ps[k]||0)/cnt[k])/overall:0})}}});
+ const pick=(l,k)=>{const o=[],u={};for(const r of l){if((u[r.dim]||0)<2&&o.length<k){o.push(r);u[r.dim]=(u[r.dim]||0)+1}}return o};all.sort((a,b)=>b.rate-a.rate);return{overall,n,top:pick(all,6),bottom:pick(all.slice().reverse(),3)}}
+function card(id,t){return `<div class="card"><h3>${esc(t)}</h3><div id="${id}"></div></div>`}
+function draw(){document.documentElement.dataset.theme=S.theme;const R=rows(),Pn=D.panels;
+ const tm=D.kpis.map(k=>({column:k.column,agg:k.agg,positive:k.positive}));if(D.profit)tm.push({column:D.profit,agg:'sum'});
+ const gr=D.grain,ser=T&&R.length?byTime({metrics:tm},R,gr):[],n=ser.length,K=gr==='M'?(n>=24?12:n>=6?3:1):gr==='Q'?(n>=8?4:1):Math.max(1,Math.min(30,Math.floor(n/2)));
+ const W={M:['month','months'],Q:['quarter','quarters'],D:['day','days']}[gr]||['',''],dtxt=' vs previous '+(K>1?K+' '+W[1]:W[0]);
+ const delta=j=>{if(n<2*K)return null;const m=tm[j],w=(a,b)=>ser.slice(a,b).map(s=>s.v[j]||0),red=a=>(m.agg==='sum'||m.agg==='nunique'||m.agg==='count')?a.reduce((x,y)=>x+y,0):a.reduce((x,y)=>x+y,0)/a.length,p=red(w(n-2*K,n-K)),q=red(w(n-K,n));return p?(q-p)/Math.abs(p)*100:null};
+ $('kpis').innerHTML=D.kpis.map((k,i)=>{const dl=T?delta(i):null;return`<div class="kpi k${i}"><div class="ico">${k.icon||'📊'}</div><div><span>${esc(k.label)}</span><b>${fv(agg(k,R),k.agg==='rate'?'percent':D.fmt[k.column])}</b>${dl==null?'':`<em>${dl>=0?'▲':'▼'} ${Math.abs(dl).toFixed(1)}%${dtxt}</em>`}</div></div>`}).join('');
+ const sg=D.target?segs(R):null,jobs=[];
+ const r1=Pn.filter(p=>p.slot!=='row'),r2=Pn.filter(p=>p.slot==='row');
+ $('r1').innerHTML=r1.map(p=>card('c_'+p.id,p.title)).join('');$('r2').innerHTML=r2.map(p=>card('c_'+p.id,p.title)).join('');
+ Pn.forEach(p=>{const el=$('c_'+p.id),q=p.query;
+  if(p.type==='insights'){el.className='ins';el.innerHTML=D.insights.map(x=>`<div>${esc(x)}</div>`).join('');return}
+  if(p.type==='segments'){if(!sg||!sg.top.length){el.innerHTML='<p class="mut">Not enough rows in this selection.</p>';return}
+   el.innerHTML=`<table><thead><tr><th>Group</th><th class="rt">Rows</th><th class="rt">Rate</th><th class="rt">vs avg</th></tr></thead><tbody>${sg.top.map(r=>`<tr><td class="tr" title="${esc(r.label)}">${esc(r.label)}</td><td class="rt">${nf(r.n)}</td><td class="rt"><b>${(r.rate*100).toFixed(1)}%</b></td><td class="rt">${r.lift.toFixed(1)}x</td></tr>`).join('')}</tbody></table><p class="mut">Overall rate ${(sg.overall*100).toFixed(1)}%</p>`;return}
+  if(p.type==='trend'||p.type==='yearly'){const g=p.type==='yearly'?'Y':q.time_grain;if(!R.length||!T){el.innerHTML='<p class="mut">No data for the current filters.</p>';return}const s=byTime(q,R,g),ms=q.metrics,SR=[{name:ml(ms[0]),v:s.map(x=>x.v[0]),ax:'l',type:p.type==='yearly'?'bar':'area',color:PAL[0],fmt:mf(ms[0])}];
+   if(ms[1])SR.push({name:ml(ms[1]),v:s.map(x=>x.v[1]),ax:'r',type:'line',color:PAL[1],fmt:mf(ms[1])});chart(el,s.map(x=>LAB[g](x.k)),SR,p.type==='yearly'?220:250);return}
+  const t=byDim(q,R),m0=q.metrics[0];
+  if(p.type==='donut')donut(el,t.map(x=>({name:x.name,v:x.v[0]})),mf(m0),p.total_label);
+  else if(p.type==='bar')barlist(el,t.map(x=>({name:x.name,v:x.v[0]})),mf(m0),false);
+  else if(p.type==='list')barlist(el,t.map(x=>({name:x.name,v:x.v[0]})),mf(m0),!!p.share);
+  else if(p.type==='top')el.innerHTML=t.length?`<table><thead><tr><th>#</th><th>${esc(nice(q.group_by[0]))}</th>${q.metrics.map(m=>`<th class="rt">${esc(ml(m))}</th>`).join('')}</tr></thead><tbody>${t.map((x,i)=>`<tr><td>${i+1}</td><td class="tr" title="${esc(x.name)}">${esc(x.name)}</td>${x.v.map((v,j)=>`<td class="rt">${sh(v,mf(q.metrics[j]))}</td>`).join('')}</tr>`).join('')}</tbody></table>`:'<p class="mut">No data for the current filters.</p>'});
+ const items=[],ix=D.kpis.findIndex(k=>k.agg==='rate');
+ D.strip.forEach(k=>{
+  if(k==='records')items.push([D.records,nf(R.length),'']);
+  else if(k==='rate'&&ix>=0)items.push(['Overall '+nice(D.target.column).toLowerCase()+' rate',fv(agg(D.kpis[ix],R),'percent'),nf(R.length)+' '+D.records.toLowerCase()]);
+  else if(k==='risk_high'&&sg&&sg.top[0])items.push(['Highest-risk group',(sg.top[0].rate*100).toFixed(1)+'%',sg.top[0].label]);
+  else if(k==='risk_low'&&sg&&sg.bottom[0])items.push(['Lowest-risk group',(sg.bottom[0].rate*100).toFixed(1)+'%',sg.bottom[0].label]);
+  else if(k==='total'){const m=D.kpis.find(x=>x.agg==='sum');if(m)items.push(['Total '+nice(m.column),fv(agg(m,R),D.fmt[m.column]),''])}
+  else if(k==='growth'&&T){const g=delta(0);items.push(['Growth'+dtxt,g==null?'–':(g>=0?'+':'')+g.toFixed(1)+'%',''])}
+  else if(k==='margin'&&D.profit&&C[D.profit]){const m1=D.kpis.find(x=>x.agg==='sum'),s=m1?agg(m1,R):0;items.push([nice(D.profit)+' margin',s?(agg({column:D.profit,agg:'sum'},R)/s*100).toFixed(1)+'%':'–',''])}
+  else if(k==='best'&&T&&n){const j=0,b=ser.reduce((a,c)=>c.v[j]>a.v[j]?c:a);items.push(['Best performing period',LAB[gr](b.k),''])}});
+ $('strip').innerHTML=items.map(x=>`<div class="card"><span class="mut">${esc(x[0])}</span><b>${esc(x[1])}</b>${x[2]?`<small>${esc(x[2])}</small>`:''}</div>`).join('');
+ $('sub').textContent=D.file+' · '+nf(R.length)+' of '+nf(N)+' rows'+(T?' · '+iso(TMIN)+' to '+iso(TMAX):'');syncBtns()}
+function controls(){let h='';if(T)h+=`<input type="date" id="dmin" min="${iso(TMIN)}" max="${iso(TMAX)}" value="${esc(S.min)}"><span class="mut">to</span><input type="date" id="dmax" min="${iso(TMIN)}" max="${iso(TMAX)}" value="${esc(S.max)}">`;
+ D.filters.forEach(c=>{h+=`<select data-f="${esc(c)}"><option value="">All ${esc(nice(c))}</option>${C[c].u.slice().sort().map(u=>`<option${S.sel[c]===u?' selected':''}>${esc(u)}</option>`).join('')}</select>`});
+ h+=`<button id="bu"></button><button id="bt"></button><button id="br">Reset</button><button id="bp" class="p">Print / PDF</button>`;$('ctl').innerHTML=h;
+ $('ctl').onchange=e=>{const t=e.target;if(t.dataset.f!=null)S.sel[t.dataset.f]=t.value;else if(t.id==='dmin')S.min=t.value;else if(t.id==='dmax')S.max=t.value;draw()};
+ $('ctl').onclick=e=>{const id=e.target.id;if(id==='bu'){S.ind=!S.ind;draw()}else if(id==='bt'){S.theme=S.theme==='dark'?'light':'dark';draw()}else if(id==='bp')print();else if(id==='br'){S.sel={};S.min=S.max='';controls();draw()}}}
+function syncBtns(){const u=$('bu'),t=$('bt');if(u)u.textContent=S.ind?'Units: L / Cr':'Units: K / M';if(t)t.textContent=S.theme==='dark'?'☀️ Light':'🌙 Dark'}
+const TP=$('tip');document.addEventListener('mousemove',e=>{const t=e.target.closest&&e.target.closest('[data-t]');if(!t){TP.style.display='none';return}TP.innerHTML=t.getAttribute('data-t');TP.style.display='block';TP.style.left=Math.min(e.clientX+14,innerWidth-TP.offsetWidth-8)+'px';TP.style.top=(e.clientY+14)+'px'});
+document.title=D.title+' · '+D.file;$('title').textContent=D.title;
+$('why').innerHTML=D.panels.filter(p=>p.why).map(p=>`<p><b>${esc(p.title)}:</b> ${esc(p.why)}</p>`).join('')+Object.keys(D.reasons).map(k=>`<p><b>${esc(nice(k))}:</b> ${esc(D.reasons[k])}</p>`).join('')+D.kpis.filter(k=>k.why).map(k=>`<p><b>${esc(k.label)}:</b> ${esc(k.why)}</p>`).join('');
+$('foot').textContent='Generated by AutoDash on '+D.made+' · all data is embedded in this file, so it works offline · hover charts for details';
+controls();draw();
+})();
+</script></body></html>

@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pandas
+numpy
+requests
+httpx
+pytest
+PyJWT
+google-auth
+openpyxl
+xlrd
+python-dotenv
