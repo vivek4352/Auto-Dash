@@ -80,9 +80,41 @@ export default function App(){
   const toggle=()=>setTheme(theme==='dark'?'light':'dark')
   const [cfg,setCfg]=useState({}),[user,setUser]=useState(null),[ready,setReady]=useState(false),[datasets,setDatasets]=useState([])
   const [id,setId]=useState(null),[view,setView]=useState('home'),[busy,setBusy]=useState(false),[err,setErr]=useState('')
-  useEffect(()=>{api('/api/auth/config').then(setCfg).catch(()=>{})
-    ;(getTok()?api('/api/me').then(setUser).catch(()=>setTok(null)):Promise.resolve()).finally(()=>setReady(true))
-    const ex=()=>{setUser(null);setId(null);setView('home')};window.addEventListener('auth-expired',ex);return()=>window.removeEventListener('auth-expired',ex)},[])
+ useEffect(() => {
+  // Load Google authentication configuration
+  api('/api/auth/config')
+    .then(config => {
+      console.log('Auth configuration loaded:', config);
+
+      if (!config.google_client_id) {
+        console.error('Google Client ID missing from backend config');
+      }
+
+      setCfg(config);
+    })
+    .catch(error => {
+      console.error('Failed to load auth configuration:', error);
+      setErr('Unable to connect to the authentication server.');
+    });
+
+  // Restore existing session
+  (getTok()
+    ? api('/api/me')
+        .then(setUser)
+        .catch(() => setTok(null))
+    : Promise.resolve()
+  ).finally(() => setReady(true));
+
+  const ex = () => {
+    setUser(null);
+    setId(null);
+    setView('home');
+  };
+
+  window.addEventListener('auth-expired', ex);
+
+  return () => window.removeEventListener('auth-expired', ex);
+}, []);
   const refresh=useCallback(()=>api('/api/datasets').then(r=>setDatasets(r.datasets)).catch(()=>{}),[])
   useEffect(()=>{if(user)refresh();else setDatasets([])},[user])
   const session=async(path,body)=>{setErr('');try{const r=await api(path,{method:'POST',body});setTok(r.token);setUser(r.user)}catch(e){setErr(e.message)}}
