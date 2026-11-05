@@ -1,8 +1,12 @@
-import os, uuid, json
+import os
+import uuid
+import json
+
 from collections import Counter
 from fastapi import FastAPI, UploadFile, File, HTTPException, Body, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
+
 from .core import config
 from . import store, db, auth
 from .auth import current_user
@@ -20,9 +24,47 @@ from .services.segments import segment_table
 from .services.html_export import to_html
 from .services.powerbi_kit import build_kit
 
+
+# ---------------- FastAPI initialization ----------------
+
 app = FastAPI(title="Auto Dashboard API")
-app.add_middleware(CORSMiddleware, allow_origins=[config.FRONTEND_ORIGIN], allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?", allow_methods=["*"], allow_headers=["*"])
+
+
+# Normalize configured origins to avoid trailing-slash mismatches.
+def normalize_origin(origin):
+    if not origin:
+        return None
+    return origin.strip().rstrip("/")
+
+
+# Allowed frontend origins.
+allowed_origins = {
+    normalize_origin(config.FRONTEND_ORIGIN),
+    normalize_origin(os.getenv("FRONTEND_ORIGIN")),
+    "https://auto-dash-zeta.vercel.app",
+}
+
+# Remove empty values.
+allowed_origins.discard(None)
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=list(allowed_origins),
+
+    # Local development support.
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ---------------- Existing application configuration ----------------
+
 MAX_PER_USER = int(os.getenv("MAX_DATASETS_PER_USER", "25"))
+
 lay = lambda m: m["spec"].get("layout") or build_layout(m["profile"])
 
 def get(i, user):
